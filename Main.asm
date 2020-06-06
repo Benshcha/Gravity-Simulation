@@ -686,12 +686,12 @@ start:
    push 1
    call addPlanet
 
-   ; push 50
-   ; push 50
-   ; push 1
-   ; push 0
-   ; push 10000
-   ; call addplanet
+   push 50
+   push 100
+   push 1
+   push 0
+   push 34000
+   call addplanet
 
    call drawPlanets
 
