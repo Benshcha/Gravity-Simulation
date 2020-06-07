@@ -19,6 +19,8 @@ DATASEG
    scaleVelocityDown dw 10
    scaleForceUp dw 500
    scaleForceDown dw 6000
+   mindistance dw 7
+   BoomTxt db 'Boom!', '$'
 
    ;placeholders:
    address dw ?
@@ -446,6 +448,27 @@ afterSamePlanetmid:
       mov [distance], ax
       pop cx
 
+      mov ax, [mindistance] 
+      cmp [distance], ax
+      jg disIsOk
+
+      mov dx, offset BoomTxt
+      mov ah, 9
+      int 21h
+
+      ;wait for press
+      mov ax, 0
+      int 16h
+
+      ;exit graphics mode
+      mov ax, 3
+      int 10h
+      
+      jmp exit
+
+      
+
+   disIsOk:
       mov ax, [m]
       mov dx, 0
       mul [G]     ;dx:ax = mG
