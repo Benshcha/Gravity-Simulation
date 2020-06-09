@@ -20,7 +20,7 @@ DATASEG
    scaleForceUp dw 500
    scaleForceDown dw 6000
    mindistance dw 7
-   BoomTxt db 'Boom!', '$'
+   BoomTxt db 'Boom! Press any key to continue.', '$'
 
    ;placeholders:
    address dw ?
