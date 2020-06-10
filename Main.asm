@@ -8,6 +8,39 @@ STACK 100
 ;Variables
 DATASEG
 
+   x equ [bp + 8]
+   y equ [bp + 6]
+   color equ [bp + 4]
+
+
+
+   ;text
+   BoomTxt db 'Boom! Press any key to exit.', '$'
+   ErrorMsg db 'Error', 13, 10 ,'$'
+   Welcoming_Text db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 13, 10
+                  db 'Welcome to my gravity simulation!', 13, 10
+                  db 'Press any key to start the simulation', 13, 10, '$'
+
+   ;general variables
    posMat dw 10 dup(0) ;position matrix of all the planets. contatined as (x1, y1, x2, y2, x3, y3 ... )
                       ;max number of planets is 10/2 = 5
    velMat dw 10 dup(0) ;velocity matrix of all the planets. contained the same way as the position matrix
@@ -20,39 +53,219 @@ DATASEG
    scaleForceUp dw 500
    scaleForceDown dw 6000
    mindistance dw 7
-   BoomTxt db 'Boom!', '$'
+   height dw 200
+   wid dw 320
+   imageXLocation dw 0
+   imageYLocation dw 0
+
+   welcomeImg db 'GRAVIT~1/GRAVIT~1/welcome.BMP', 0
 
    ;placeholders:
-   address dw ?
-   retAddress dw ?
-   a_x dw ?
-   a_y dw ?
-   v_x dw ?
-   v_y dw ?
-   aAbs dw ?
+   filehandle dw 0
+   Header db 54 dup (0)
+   Palette db 256*4 dup (0)
+   ScrLine db 320 dup (0)
+   address dw 0
+   retAddress dw 0
+   a_x dw 0
+   a_y dw 0
+   v_x dw 0
+   v_y dw 0
+   aAbs dw 0
    cPlanet dw 0
    otherPlanet dw 0
-   sr dd ? ;a temp var
+   sr dd 0 ;a temp var
    distanceVector dd ?
    rx dw 0
    ry dw 0
    tempNum dw 0
    m dw 0
-   n dd ?
-   nd dw ? ;n divided by 2
-   num dw ?
-   prevNum dw ?
-   distance dw ?
-   miliseconds db ?
+   n dd 0
+   nd dw 0 ;n divided by 2
+   num dw 0
+   prevNum dw 0
+   distance dw 0
+   miliseconds db 0
    ticks dw 115   ;used for debugging
-   mG dd ?
+   mG dd 0
 
 ;Code
 CODESEG
 
-   x equ [bp + 8]
-   y equ [bp + 6]
-   color equ [bp + 4]
+proc PrintImage
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push [imageXLocation]
+	push [imageYLocation]
+	
+	call OpenFile
+    call ReadHeader
+    call ReadPalette
+    call CopyPal
+    call CopyBitmap
+	call CloseFile
+	
+	pop [imageYLocation]
+	pop [imageXLocation]
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+endp PrintImage
+
+proc CloseFile
+  mov  ah, 3Eh
+  mov  bx, [filehandle]
+  int  21h
+  ret
+endp CloseFile
+
+proc OpenFile
+	
+	; Open file
+	
+	mov ah, 3Dh
+	xor al, al
+	int 21h
+	
+	jc openerror
+	mov [filehandle], ax
+	
+	ret
+openerror:
+
+	mov dx, offset ErrorMsg
+	mov ah, 9h
+	int	 21h
+	
+	ret
+endp OpenFile
+
+proc ReadHeader
+
+    ; Read BMP file header, 54 bytes
+
+    mov ah,3fh
+    mov bx, [filehandle]
+    mov cx,54
+    mov dx,offset Header
+    int 21h
+    ret
+endp ReadHeader
+
+proc ReadPalette
+
+    ; Read BMP file color palette, 256 colors * 4 bytes (400h)
+
+    mov ah,3fh
+    mov cx,400h
+    mov dx,offset Palette
+    int 21h
+    ret
+endp ReadPalette
+
+proc CopyPal
+
+    ; Copy the colors palette to the video memory
+    ; The number of the first color should be sent to port 3C8h
+    ; The palette is sent to port 3C9h
+
+    mov si,offset Palette
+    mov cx,256
+    mov dx,3C8h
+    mov al,0
+
+    ; Copy starting color to port 3C8h
+
+    out dx,al
+
+    ; Copy palette itself to port 3C9h
+
+    inc dx
+    PalLoop:
+
+    ; Note: Colors in a BMP file are saved as BGR values rather than RGB.
+
+    mov al,[si+2] ; Get red value.
+    shr al,2 ; Max. is 255, but video palette maximal
+
+    ; value is 63. Therefore dividing by 4.
+
+    out dx,al ; Send it.
+    mov al,[si+1] ; Get green value.
+    shr al,2
+    out dx,al ; Send it.
+    mov al,[si] ; Get blue value.
+    shr al,2
+    out dx,al ; Send it.
+    add si,4 ; Point to next color.
+
+    ; (There is a null chr. after every color.)
+
+    loop PalLoop
+    ret
+endp CopyPal
+
+proc CopyBitmap
+
+    ; BMP graphics are saved upside-down.
+    ; Read the graphic line by line (200 lines in VGA format),
+    ; displaying the lines from bottom to top.
+
+    mov ax, 0A000h
+    mov es, ax
+    mov cx,[Height]
+PrintBMPLoop:
+    push cx
+
+    ; di = cx*320, point to the correct screen line
+
+    mov di,cx
+    shl cx,6
+    shl di,8
+    add di,cx
+	
+	add di,[imageXLocation]
+	mov ax,320
+	mul[imageYLocation]
+	add di, ax
+	
+    ; Read one line
+
+    mov ah,3fh
+    mov cx,[Wid]
+    mov dx,offset ScrLine
+    int 21h
+
+    ; Copy one line into video memory
+
+    cld 
+
+    ; Clear direction flag, for movsb
+
+    mov cx,[Wid]
+    mov si,offset ScrLine
+    rep movsb 
+
+    ; Copy line to the screen
+    ;rep movsb is same as the following code:
+    ;mov es:di, ds:si
+    ;inc si
+    ;inc di
+    ;dec cx
+    ;loop until cx=0
+
+    pop cx
+    loop PrintBMPLoop
+    ret
+endp CopyBitmap
 
 ;signed division of ax by a positive number
 ;push num
@@ -142,9 +355,10 @@ proc print
 endp print
 
 ;print cross inorder to represent the place of the planet (temporary)
+;push color
 ;push x
 ;push y
-proc printRedCross
+proc printCross
    push bp
    mov bp, sp
 
@@ -155,33 +369,33 @@ proc printRedCross
    mov [ry], bx
    push [rx]    ;x
    push [ry]    ;y
-   push 4      ;color
+   push [bp + 8]     ;color
    call print
    add [rx], 1
    push [rx]
    push [ry]
-   push 4
+   push [bp + 8]
    call print
    sub [rx], 2
    push [rx]
    push [ry]
-   push 4
+   push [bp + 8]
    call print
    add [rx], 1
    add [ry], 1
    push [rx]
    push [ry]
-   push 4
+   push [bp + 8]
    call print
    sub [ry], 2
    push [rx]
    push [ry]
-   push 4
+   push [bp + 8]
    call print
 
    pop bp
    ret 6
-endp printRedCross
+endp printCross
 
 ;print cross inorder to clear the screen
 ;push x
@@ -248,7 +462,7 @@ proc addPlanetPos
    ;draw
    ;push [bp + 8]
    ;push [bp + 6]
-   ;call printRedCross
+   ;call printCross
 
    pop bp
    ret 6
@@ -339,9 +553,10 @@ drawplanet:
    mov bx, ax
    add bx, offset posMat
    mov [tempNum], cx
+   push cx
    push [bx]
    push [bx + 2]
-   call printRedCross
+   call printCross
    mov cx, [tempNum]
    loop drawplanet
    push [retAddress]
@@ -465,8 +680,6 @@ afterSamePlanetmid:
       int 10h
       
       jmp exit
-
-      
 
    disIsOk:
       mov ax, [m]
@@ -695,14 +908,33 @@ start:
    mov ax, 13h
    int 10h
 
+   mov dx, offset welcomeImg
+   call PrintImage
+
+   mov dx, offset Welcoming_Text
+   mov ah, 9
+   int 21h
+
+   ;wait for press
+   mov ax, 0  
+   int 16h
+
+   ;exit graphics mode
+   mov ax, 3
+   int 10h
+
+   ;enter graphics mode
+   mov ax, 13h
+   int 10h
+
    push 160 ;x
    push 100 ;y
    push 0   ;vx
    push 0  ;vy
-   push 44000   ;mass
+   push 35000   ;mass
    call addplanet
 
-   push 110
+   push 115
    push 100
    push 0
    push 10
@@ -711,7 +943,7 @@ start:
 
    push 50
    push 100
-   push 1
+   push 0
    push 0
    push 34000
    call addplanet
