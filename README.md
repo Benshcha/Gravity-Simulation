@@ -11,4 +11,8 @@ push yVelocity  <br>
 push mass <br>
 call addPlanet 
 
-There should be up to 5 segments of code like the above.
+There should be up to 5 segments of code like the above! If you wish to change existing problems you should change the xPosition, yPosition... etc of the planet which you wish to change.
+
+
+
+Gal Ben-Shach 10.6.2020
