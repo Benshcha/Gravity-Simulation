@@ -1,15 +1,15 @@
 # Gravity-Simulation
-To run the simulation, place the entire project folder inside TASM\BIN and execute GRAVIT~1\startup.bat
+To run the simulation, place the entire project folder inside TASM\BIN and execute GRAVIT~1\startup.bat#
 
-# Changing Planet Formation
+## Changing Planet Formation
 inorder to change the planets formation you should head to the start location and change the arrange these code lines:
 
 ```
-push xPosition <br>
-push yPosition  <br>
-push xVelocity  <br>
-push yVelocity  <br>
-push mass <br>
+push xPosition 
+push yPosition  
+push xVelocity  
+push yVelocity  
+push mass 
 call addPlanet 
 ```
 
