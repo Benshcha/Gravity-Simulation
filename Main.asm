@@ -95,6 +95,16 @@ DATASEG
 ;Code
 CODESEG
 
+;waits cx ticks
+proc waitNumTicks
+waitTicks:
+   push cx
+   call waitOneTick
+   pop cx
+   loop waitTicks
+   ret
+endp waitNumTicks
+
 ;info screen
 proc info
    info:
@@ -102,11 +112,7 @@ proc info
       call PrintImage
 
       mov cx, 10
-   waitTicks:
-      push cx
-      call waitOneTick
-      pop cx
-      loop waitTicks
+      call waitNumTicks
 
       ;clean the buffer
       mov ah, 0ch
@@ -131,6 +137,12 @@ proc info
       ;enter graphics mode
       mov ax, 13h
       int 10h
+
+      push cx
+      mov cx, 7
+      call waitNumTicks
+      pop cx
+
       ret
 endp info
 
