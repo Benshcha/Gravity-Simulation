@@ -57,6 +57,7 @@ DATASEG
    wid dw 320
    imageXLocation dw 0
    imageYLocation dw 0
+   traceBool db 0
 
    welcomeImg db 'GRAVIT~1/welcome.BMP', 0
    infoone db 'GRAVIT~1/infoone.BMP', 0
@@ -93,6 +94,82 @@ DATASEG
 
 ;Code
 CODESEG
+
+;info screen
+proc info
+   info:
+      mov dx, offset infoone
+      call PrintImage
+
+      mov cx, 10
+   waitTicks:
+      push cx
+      call waitOneTick
+      pop cx
+      loop waitTicks
+
+      ;clean the buffer
+      mov ah, 0ch
+      mov al, 0
+      int 21h
+
+      ;wait for press
+      mov ax, 0
+      int 16h
+
+      mov dx, offset infotwo
+      call PrintImage
+
+      ;wait for press
+      mov ax, 0
+      int 16h
+
+      ;exit graphics mode
+      mov ax, 3
+      int 10h
+
+      ;enter graphics mode
+      mov ax, 13h
+      int 10h
+      ret
+endp info
+
+;mov [lastPosMat], [posMat]
+proc savePos
+   push cx
+   mov al, 10
+   mov cl, 2
+   mul cl
+   mov cl, al
+   mov ch, 0
+
+   mov di, offset posMat
+   mov si, offset lastPosMat
+
+movEachComponent:
+   mov bl, 10
+   mov bh, 0
+   sub bx, cx
+   mov ax, 2
+   mul bl
+   mov bx, ax
+   mov ax, [di + bx]
+   mov [si + bx], ax
+loop movEachComponent
+   pop cx
+   ret
+endp savePos
+
+;exit shortcut
+proc exitproc
+   ;exit graphics mode
+   mov ax, 3
+   int 10h
+
+   ;exit
+   mov ax, 4c00h
+   int 21h
+endp exitproc
 
 proc PrintImage
 	push ax
@@ -613,10 +690,15 @@ proc sumAcceleration
       mov bx, [di + bx] ;x position of the planet the applies the force
       pop ax
 
+      ;jumping shortcut for the loop
+      ;-----------------------------------------------------------------------------------------------------------
+      ;-----------------------------------------------------------------------------------------------------------
       jmp afterSamePlanetmid
 samePlanetmid:
-      jmp samePlanet          ;jumping shortcut for the loop
+      jmp samePlanet          
 afterSamePlanetmid:
+      ;-----------------------------------------------------------------------------------------------------------
+      ;-----------------------------------------------------------------------------------------------------------
 
       sub bx, ax
       mov [rx], bx ;x component of the distance vector
@@ -929,6 +1011,21 @@ start:
    mov ax, 13h
    int 10h
 
+   ;-----------------------------------------------------------------------------------------------------------
+   ;-----------------------------------------------------------------------------------------------------------
+   ;
+   ;Insert your planet's here as:
+   ; push x
+   ; push y
+   ; push vx
+   ; push vy
+   ; push mass
+   ; call addplanet
+   ;
+   ;There can only be up to five planets
+   ;----------------------------------------------------------------------------------------------------------- 
+
+   ;first planet (red) -----------------------------------------------------------------------------------------------------------
    push 160 ;x
    push 100 ;y
    push 0   ;vx
@@ -936,6 +1033,7 @@ start:
    push 35000   ;mass
    call addplanet
 
+   ;second planet (cyan) -----------------------------------------------------------------------------------------------------------
    push 115
    push 100
    push 0
@@ -943,6 +1041,7 @@ start:
    push 1
    call addPlanet
 
+   ;third planet (green) -----------------------------------------------------------------------------------------------------------
    push 50
    push 100
    push 0
@@ -950,12 +1049,24 @@ start:
    push 34000
    call addplanet
 
+   ;fourth planet (blue) -----------------------------------------------------------------------------------------------------------
    push 200
    push 50
    push 50
    push 20
    push 20000
    call addPlanet
+
+   ;fifth planet -----------------------------------------------------------------------------------------------------------
+   ; push x
+   ; push y
+   ; push vx
+   ; push vy
+   ; push mass
+   ; call addPlanet
+
+   ;-----------------------------------------------------------------------------------------------------------
+   ;-----------------------------------------------------------------------------------------------------------
 
    call drawPlanets
 
@@ -979,73 +1090,48 @@ Update:
    notSpace:
       ;check if the esc key was pressed
       cmp al, 1h
-      je exit
-
+      jne notesc
+      call exitproc
+   notesc:
       cmp al, 17h
-      je info
+      jne notinfo
+      call info
+   notinfo:
+
+      cmp al, 14h
+      je startTracing
       jmp keyNotPressed
 
-   info:
-      mov dx, offset infoone
-      call PrintImage
-
-      mov cx, 10
-   waitTicks:
-      push cx
-      call waitOneTick
-      pop cx
-      loop waitTicks
-
-      ;clean the buffer
-      mov ah, 0ch
-      mov al, 0
-      int 21h
-
-      ;wait for press
-      mov ax, 0
-      int 16h
-
-      mov dx, offset infotwo
-      call PrintImage
-
-      ;wait for press
-      mov ax, 0
-      int 16h
-
+   startTracing:
+      cmp [traceBool], 1
+      je stopTracing
+      mov [traceBool], 1
+      jmp keyNotPressed
+   stopTracing:
+      mov [traceBool], 0
       ;exit graphics mode
       mov ax, 3
       int 10h
 
       ;enter graphics mode
       mov ax, 13h
-      int 10h
+      int 10h      
+      jmp keyNotPressed
       
 
    keyNotPressed:
 
       call waitOneTick
 
-   ;mov [lastPosMat], [posMat]
-      push cx
-      mov cx, 10
-      mov di, offset posMat
-      mov si, offset lastPosMat
-
-   movEachComponent:
-      mov bx, 10
-      sub bx, cx
-      mov ax, 2
-      mul bl
-      mov bx, ax
-      mov ax, [di + bx]
-      mov [si + bx], ax
-   loop movEachComponent
-      pop cx
+      call savePos
 
       call computeNextTick
 
+      cmp [traceBool], 1
+      je trace
       call clearScreen
 
+trace:
       call drawPlanets
 
       mov cx, [ticks] ;used for debugging
