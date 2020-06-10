@@ -59,6 +59,8 @@ DATASEG
    imageYLocation dw 0
 
    welcomeImg db 'GRAVIT~1/GRAVIT~1/welcome.BMP', 0
+   infoone db 'GRAVIT~1/GRAVIT~1/infoone.BMP', 0
+   infotwo db 'GRAVIT~1/GRAVIT~1/infotwo.BMP', 0
 
    ;placeholders:
    filehandle dw 0
@@ -978,6 +980,45 @@ Update:
       ;check if the esc key was pressed
       cmp al, 1h
       je exit
+
+      cmp al, 17h
+      je info
+      jmp keyNotPressed
+
+   info:
+      mov dx, offset infoone
+      call PrintImage
+
+      mov cx, 10
+   waitTicks:
+      push cx
+      call waitOneTick
+      pop cx
+      loop waitTicks
+
+      ;clean the buffer
+      mov ah, 0ch
+      mov al, 0
+      int 21h
+
+      ;wait for press
+      mov ax, 0
+      int 16h
+
+      mov dx, offset infotwo
+      call PrintImage
+
+      ;wait for press
+      mov ax, 0
+      int 16h
+
+      ;exit graphics mode
+      mov ax, 3
+      int 10h
+
+      ;enter graphics mode
+      mov ax, 13h
+      int 10h
       
 
    keyNotPressed:
