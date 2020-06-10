@@ -58,9 +58,9 @@ DATASEG
    imageXLocation dw 0
    imageYLocation dw 0
 
-   welcomeImg db 'GRAVIT~1/GRAVIT~1/welcome.BMP', 0
-   infoone db 'GRAVIT~1/GRAVIT~1/infoone.BMP', 0
-   infotwo db 'GRAVIT~1/GRAVIT~1/infotwo.BMP', 0
+   welcomeImg db 'GRAVIT~1/welcome.BMP', 0
+   infoone db 'GRAVIT~1/infoone.BMP', 0
+   infotwo db 'GRAVIT~1/infotwo.BMP', 0
 
    ;placeholders:
    filehandle dw 0
