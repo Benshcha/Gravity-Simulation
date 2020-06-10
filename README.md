@@ -5,15 +5,15 @@ To run the simulation, place the entire project folder inside TASM\BIN and execu
 inorder to change the planets formation you should head to the start location and change the arrange these code lines:
 
 ```
-push xPosition 
-push yPosition  
-push xVelocity  
-push yVelocity  
-push mass 
-call addPlanet 
+push xPosition (word sized)
+push yPosition  (word sized)
+push xVelocity  (word sized)
+push yVelocity  (word sized)
+push mass (word sized)
+call addPlanet
 ```
 
-**There should be up to _5_ segments of code like the above! If you wish to change existing problems you should change the xPosition, yPosition... etc of the planet which you wish to change.**
+**There should be up to _5_ segments of code like the above! If you wish to change existing problems you should change the `xPosition`, `yPosition`... etc of the planet which you wish to change.**
 
 
 
