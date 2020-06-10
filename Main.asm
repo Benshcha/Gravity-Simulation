@@ -948,6 +948,13 @@ start:
    push 34000
    call addplanet
 
+   push 200
+   push 50
+   push 50
+   push 20
+   push 20000
+   call addPlanet
+
    call drawPlanets
 
    mov cx, [ticks]
