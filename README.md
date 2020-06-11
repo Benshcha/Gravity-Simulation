@@ -13,7 +13,7 @@ push mass (word sized)
 call addPlanet
 ```
 
-**There should be up to _5_ segments of code like the above! If you wish to change existing problems you should change the `xPosition`, `yPosition`... etc of the planet which you wish to change.**
+**There should be up to _5_ segments of code like the above! If you wish to change existing planets you should change the `xPosition`, `yPosition`... etc of the planet which you wish to change.**
 
 
 
