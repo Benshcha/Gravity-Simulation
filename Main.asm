@@ -173,11 +173,7 @@ loop movEachComponent
 endp savePos
 
 ;exit shortcut
-proc exitproc
-   ;wait for press
-   mov ax, 0
-   int 16h   
-
+proc exitproc   
    ;exit graphics mode
    mov ax, 3
    int 10h
@@ -709,10 +705,14 @@ proc sumAcceleration
       ;jumping shortcut for the loop
       ;-----------------------------------------------------------------------------------------------------------
       ;-----------------------------------------------------------------------------------------------------------
-      jmp afterSamePlanetmid
-samePlanetmid:
+         jmp afterSamePlanetmid
+   samePlanetmid:
+         jmp samePlanet          
       jmp samePlanet          
-afterSamePlanetmid:
+         jmp samePlanet          
+      jmp samePlanet          
+         jmp samePlanet          
+   afterSamePlanetmid:
       ;-----------------------------------------------------------------------------------------------------------
       ;-----------------------------------------------------------------------------------------------------------
 
@@ -771,6 +771,11 @@ afterSamePlanetmid:
       mov ah, 9
       int 21h
 
+      ;clean the buffer
+      mov ah, 0ch
+      mov al, 0
+      int 21h
+
       ;wait for press
       mov ax, 0
       int 16h
@@ -779,7 +784,7 @@ afterSamePlanetmid:
       mov ax, 3
       int 10h
       
-      jmp exit
+      call exitproc
 
    disIsOk:
       mov ax, [m]
@@ -1090,7 +1095,6 @@ start:
 
 Update:
       mov [ticks], cx
-
       ;check if a key was pressed
       in al, 64h
       cmp al, 10b
