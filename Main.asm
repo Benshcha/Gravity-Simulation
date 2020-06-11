@@ -174,6 +174,10 @@ endp savePos
 
 ;exit shortcut
 proc exitproc
+   ;wait for press
+   mov ax, 0
+   int 16h   
+
    ;exit graphics mode
    mov ax, 3
    int 10h
@@ -1121,6 +1125,7 @@ Update:
       jmp keyNotPressed
    stopTracing:
       mov [traceBool], 0
+
       ;exit graphics mode
       mov ax, 3
       int 10h
