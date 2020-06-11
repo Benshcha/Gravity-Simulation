@@ -1006,6 +1006,11 @@ proc stop
       jne dontexit
       call exitproc
    dontexit:
+      cmp al, 17h
+      jne dontInfo
+      call info
+
+   dontinfo:
 
       ;check if the space key was pressed
       in al, 60h
