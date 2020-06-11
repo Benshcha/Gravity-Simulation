@@ -62,6 +62,7 @@ DATASEG
    welcomeImg db 'GRAVIT~1/welcome.BMP', 0
    infoone db 'GRAVIT~1/infoone.BMP', 0
    infotwo db 'GRAVIT~1/infotwo.BMP', 0
+   BoomPic db 'GRAVIT~1/boompic.BMP', 0
 
    ;placeholders:
    filehandle dw 0
@@ -767,6 +768,9 @@ proc sumAcceleration
       cmp [distance], ax
       jg disIsOk
 
+      mov dx, offset BoomPic
+      call PrintImage
+
       mov dx, offset BoomTxt
       mov ah, 9
       int 21h
@@ -991,24 +995,24 @@ endp waitOneTick
 
 ;stops the simulation
 proc stop
-keepChecking:
-   ;check if a key was pressed
-   in al, 64h
-   cmp al, 10b
-   je keepChecking
+   keepChecking:
+      ;check if a key was pressed
+      in al, 64h
+      cmp al, 10b
+      je keepChecking
 
-   in al, 60h
-   cmp al, 1
-   jne dontexit
-   call exitproc
-dontexit:
+      in al, 60h
+      cmp al, 1
+      jne dontexit
+      call exitproc
+   dontexit:
 
-   ;check if the space key was pressed
-   in al, 60h
-   cmp al, 1Ch
-   jne keepChecking
-stopStopping:
-   ret
+      ;check if the space key was pressed
+      in al, 60h
+      cmp al, 1Ch
+      jne keepChecking
+   stopStopping:
+      ret
 endp stop
 
 start:
