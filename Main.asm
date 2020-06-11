@@ -997,6 +997,12 @@ keepChecking:
    cmp al, 10b
    je keepChecking
 
+   in al, 60h
+   cmp al, 1
+   jne dontexit
+   call exitproc
+dontexit:
+
    ;check if the space key was pressed
    in al, 60h
    cmp al, 1Ch
