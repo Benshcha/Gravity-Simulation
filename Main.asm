@@ -148,16 +148,20 @@ proc info
 endp info
 
 ;mov [lastPosMat], [posMat]
+;input: offset PosMat, offset lastposMat
 proc savePos
-   push cx
+   push bp
+   mov bp, sp
+   
    mov al, 10
    mov cl, 2
    mul cl
    mov cl, al
    mov ch, 0
+   mov cx, 10
 
-   mov di, offset posMat
-   mov si, offset lastPosMat
+   mov di, [bp + 6]	;offset posMat
+   mov si, [bp + 4]	;offset lastPosMat
 
 movEachComponent:
    mov bl, 10
@@ -169,8 +173,9 @@ movEachComponent:
    mov ax, [di + bx]
    mov [si + bx], ax
 loop movEachComponent
-   pop cx
-   ret
+	
+   pop bp
+   ret 4
 endp savePos
 
 ;exit shortcut
@@ -433,7 +438,7 @@ proc print
    push bp
    mov bp, sp
 
-   ; Print red dot
+   ; Print dot
    xor bx, bx
    mov cx,  x
    mov dx,  y
@@ -484,6 +489,52 @@ proc printCross
    push [ry]
    push [bp + 8]
    call print
+   
+   sub [ry], 1
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   add [ry], 1
+   add [rx], 1
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   sub [rx], 2
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   add [ry], 1
+   sub [rx], 1
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   add [rx], 4
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   add [ry], 1
+   sub [rx], 1
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   sub [rx], 2
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   add [ry], 1
+   add [rx], 1
+   push [rx]
+   push [ry]
+   push [bp + 8]
+   call print
+   
 
    pop bp
    ret 6
@@ -522,6 +573,51 @@ proc printBlackCross
    push 0
    call print
    sub [ry], 2
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   
+   sub [ry], 1
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   add [ry], 1
+   add [rx], 1
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   sub [rx], 2
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   add [ry], 1
+   sub [rx], 1
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   add [rx], 4
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   add [ry], 1
+   sub [rx], 1
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   sub [rx], 2
+   push [rx]
+   push [ry]
+   push 0
+   call print
+   add [ry], 1
+   add [rx], 1
    push [rx]
    push [ry]
    push 0
@@ -1158,9 +1254,13 @@ Update:
    keyNotPressed:
 
       call waitOneTick
-
+	  
+	  push cx
+	  push offset posMat
+	  push offset lastPosMat
       call savePos
-
+	  pop cx
+		
       call computeNextTick
 
       cmp [traceBool], 1
